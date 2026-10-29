@@ -41,6 +41,7 @@ describe('digest routes', () => {
       JSON.stringify({ at: '2026-10-28T08:00:00-04:00', job: 'zeta', status: 'retry', owner: null }),
       JSON.stringify({ at: '2026-10-28T09:00:00+02:00', job: 'alpha', status: 'ok', owner: 'Ada' }),
       JSON.stringify({ at: '2026-10-28T08:05:00-04:00', job: 'zeta', status: 'retry', owner: null }),
+      JSON.stringify({ at: '2026-10-28T08:07:00-04:00', job: 'zeta', status: 'retry', owner: null }),
       JSON.stringify({ at: '2026-10-28T08:10:00-04:00', job: 'zeta', status: 'fail', owner: null, error: 'boom' }),
       JSON.stringify({ at: 'not-json', job: 'ignored' }),
     ].join('\n'));
@@ -58,12 +59,12 @@ describe('digest routes', () => {
           firstAt: '2026-10-28T09:00:00+02:00', lastAt: '2026-10-28T09:00:00+02:00',
         },
         {
-          job: 'zeta', owner: null, runs: 3, retries: 2, lastStatus: 'fail', lastError: 'boom',
+          job: 'zeta', owner: null, runs: 4, retries: 3, lastStatus: 'fail', lastError: 'boom',
           firstAt: '2026-10-28T08:00:00-04:00', lastAt: '2026-10-28T08:10:00-04:00',
         },
       ],
       badLines: 1,
-      counts: { ok: 1, retry: 2, fail: 1 },
+      counts: { ok: 1, retry: 3, fail: 1 },
     });
 
     const htmlText = await html.text();
@@ -71,7 +72,8 @@ describe('digest routes', () => {
     expect(htmlText).toContain('—');
     expect(htmlText).toContain('2026-10-28T08:00:00-04:00');
     expect(htmlText).toContain('2026-10-28T08:10:00-04:00');
-    expect(htmlText).toMatch(/class="[^"]*warn[^"]*"[^>]*>\s*(?:zeta|3)/i);
+    expect(htmlText).toMatch(/<td[^>]*class="[^"]*warn[^"]*"[^>]*>\s*3\s*<\/td>/i);
+    expect(htmlText).toMatch(/<td[^>]*class="[^"]*warn[^"]*"[^>]*>\s*fail\s*<\/td>/i);
     expect(digest.rows.map((row) => row.job)).toEqual(['alpha', 'zeta']);
   });
 
